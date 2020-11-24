@@ -17,15 +17,20 @@ import java.util.List;
 public class BlogPost {
 
     private final BlogUser blogUser;
+    private final List<Post> posts;
 
     @Inject
     public BlogPost(BlogUser blogUser) {
         this.blogUser = blogUser;
+        posts = new ArrayList<>();
     }
 
-    public List<Post> getMyPosts() {
-        JSONArray jsonArray = getPosts();
-        List<Post> posts = new ArrayList<>();
+    public List<Post> getPosts() {
+        return posts;
+    }
+
+    public void setPosts() {
+        JSONArray jsonArray = fetchPosts();
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject post = jsonArray.getJSONObject(i);
             if (post.getInt("userId") == blogUser.getUser().getId()) {
@@ -37,10 +42,9 @@ public class BlogPost {
                 }
             }
         }
-        return posts;
     }
 
-    private JSONArray getPosts() {
+    private JSONArray fetchPosts() {
         String body = RestAssured.get("posts")
                 .then()
                 .assertThat()
