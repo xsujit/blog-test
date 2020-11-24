@@ -20,17 +20,17 @@ public class StepDefinitions {
 
     @Given("I am user {string}")
     public void i_am_user(String username) {
-        blogUser.setUsername(username);
+        blogUser.setUser(username);
     }
 
     @When("I search for posts written by me")
     public void i_search_for_posts_written_by_me() {
-        logger.info(blogUser.getUsername());
+        logger.info(blogUser.getUser().toString());
     }
 
     @Then("I should see each comment has a valid email")
     public void i_should_see_each_comment_has_a_valid_email() {
-        logger.info(blogUser.getUsername());
+        // logger.info(blogUser.getUser().toString());
     }
 
 }
