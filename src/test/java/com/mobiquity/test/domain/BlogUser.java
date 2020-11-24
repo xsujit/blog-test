@@ -3,7 +3,7 @@ package com.mobiquity.test.domain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mobiquity.test.models.User;
+import com.mobiquity.test.models.user.User;
 import io.cucumber.guice.ScenarioScoped;
 import io.restassured.RestAssured;
 import org.json.JSONArray;
@@ -41,7 +41,7 @@ public class BlogUser {
 
     private JSONArray getUsers() {
         RestAssured.baseURI = "https://jsonplaceholder.typicode.com";
-        String body = RestAssured.get("/users")
+        String body = RestAssured.get("users")
                 .then()
                 .assertThat()
                 .statusCode(200)
@@ -49,4 +49,5 @@ public class BlogUser {
                 .asString();
         return new JSONArray(body);
     }
+
 }

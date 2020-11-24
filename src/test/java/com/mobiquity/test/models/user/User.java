@@ -1,5 +1,5 @@
 
-package com.mobiquity.test.models;
+package com.mobiquity.test.models.user;
 
 public class User {
 
