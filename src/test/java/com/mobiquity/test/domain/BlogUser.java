@@ -2,17 +2,20 @@ package com.mobiquity.test.domain;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.mobiquity.test.models.user.User;
 import io.cucumber.guice.ScenarioScoped;
 import io.restassured.RestAssured;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 
+import java.util.List;
+
 @ScenarioScoped
+@Slf4j
 public class BlogUser {
 
     private final String appURL;
@@ -29,28 +32,25 @@ public class BlogUser {
     }
 
     public void setUser(String username) {
-        final User user = getMyDetails(username);
+        User user = getUserDetails(username);
         Assert.assertNotNull("No user exists with username :: " + username, user);
         this.user = user;
     }
 
-    private User getMyDetails(String username) {
-        JSONArray users = getUsers();
-        for (int i = 0; i < users.length(); i++) {
-            JSONObject user = users.getJSONObject(i);
-            if (user.getString("username").equalsIgnoreCase(username)) {
-                ObjectMapper mapper = new ObjectMapper();
-                try {
-                    return mapper.readValue(user.toString(), User.class);
-                } catch (JsonProcessingException e) {
-                    Assert.fail("Unable to map json to object :: " + e.getMessage());
-                }
-            }
+    private User getUserDetails(String username) {
+        User user = null;
+        try {
+            user = getUsers().stream()
+                    .filter(u -> u.getUsername().equalsIgnoreCase(username))
+                    .findAny()
+                    .orElse(null);
+        } catch (JsonProcessingException e) {
+            Assert.fail("Unable to map json to object :: " + e.getMessage());
         }
-        return null;
+        return user;
     }
 
-    private JSONArray getUsers() {
+    private List<User> getUsers() throws JsonProcessingException {
         String body = RestAssured
                 .given()
                 .baseUri(appURL)
@@ -60,7 +60,9 @@ public class BlogUser {
                 .statusCode(200)
                 .extract()
                 .asString();
-        return new JSONArray(body);
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(body, new TypeReference<List<User>>() {
+        });
     }
 
 }

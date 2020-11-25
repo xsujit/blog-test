@@ -9,13 +9,14 @@ import com.mobiquity.test.models.comment.Comment;
 import com.mobiquity.test.models.post.Post;
 import io.cucumber.guice.ScenarioScoped;
 import io.restassured.RestAssured;
-import org.json.JSONArray;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @ScenarioScoped
+@Slf4j
 public class BlogComment {
 
     private final BlogPost blogPost;
@@ -36,23 +37,20 @@ public class BlogComment {
     }
 
     public void setComments() {
-        List<Post> posts = blogPost.getPosts();
-        ObjectMapper mapper = new ObjectMapper();
-        for (Post post : posts) {
-            JSONArray ja = fetchComments(post.getId());
+        for (Post post : blogPost.getPosts()) {
+            final Integer postId = post.getId();
             try {
-                List<Comment> comments = mapper.readValue(ja.toString(), new TypeReference<List<Comment>>() {
-                });
-                this.comments.addAll(comments);
+                this.comments.addAll(fetchComments(postId));
             } catch (JsonProcessingException e) {
                 Assert.fail("Unable to map json to object :: " + e.getMessage());
             }
         }
-        String msg = "There are no comments for any posts by username :: " + blogUser.getUser().getUsername();
-        Assert.assertFalse(msg, comments.isEmpty());
+        final String username = blogUser.getUser().getUsername();
+        log.info("Found {} comments under posts by user {}", comments.size(), username);
+        Assert.assertFalse("There are no comments for any posts by user " + username, comments.isEmpty());
     }
 
-    private JSONArray fetchComments(int id) {
+    private List<Comment> fetchComments(int id) throws JsonProcessingException {
         String path = String.format("posts/%d/comments", id);
         String body = RestAssured
                 .given()
@@ -63,6 +61,8 @@ public class BlogComment {
                 .statusCode(200)
                 .extract()
                 .asString();
-        return new JSONArray(body);
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(body, new TypeReference<List<Comment>>() {
+        });
     }
 }
