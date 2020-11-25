@@ -3,6 +3,7 @@ package com.mobiquity.test.domain;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.mobiquity.test.models.post.Post;
 import io.cucumber.guice.ScenarioScoped;
 import io.restassured.RestAssured;
@@ -17,11 +18,13 @@ import java.util.List;
 public class BlogPost {
 
     private final BlogUser blogUser;
+    private final String appURL;
     private final List<Post> posts;
 
     @Inject
-    public BlogPost(BlogUser blogUser) {
+    public BlogPost(BlogUser blogUser, @Named("app.url") String appURL) {
         this.blogUser = blogUser;
+        this.appURL = appURL;
         posts = new ArrayList<>();
     }
 
@@ -47,7 +50,10 @@ public class BlogPost {
     }
 
     private JSONArray fetchPosts() {
-        String body = RestAssured.get("posts")
+        String body = RestAssured
+                .given()
+                .baseUri(appURL)
+                .get("posts")
                 .then()
                 .assertThat()
                 .statusCode(200)

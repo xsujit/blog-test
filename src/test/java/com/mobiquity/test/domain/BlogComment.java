@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.mobiquity.test.models.comment.Comment;
 import com.mobiquity.test.models.post.Post;
 import io.cucumber.guice.ScenarioScoped;
@@ -19,12 +20,14 @@ public class BlogComment {
 
     private final BlogPost blogPost;
     private final BlogUser blogUser;
+    private final String appURL;
     private final List<Comment> comments;
 
     @Inject
-    public BlogComment(BlogPost blogPost, BlogUser blogUser) {
+    public BlogComment(BlogPost blogPost, BlogUser blogUser, @Named("app.url") String appURL) {
         this.blogPost = blogPost;
         this.blogUser = blogUser;
+        this.appURL = appURL;
         this.comments = new ArrayList<>();
     }
 
@@ -51,7 +54,10 @@ public class BlogComment {
 
     private JSONArray fetchComments(int id) {
         String path = String.format("posts/%d/comments", id);
-        String body = RestAssured.get(path)
+        String body = RestAssured
+                .given()
+                .baseUri(appURL)
+                .get(path)
                 .then()
                 .assertThat()
                 .statusCode(200)

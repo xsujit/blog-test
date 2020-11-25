@@ -3,6 +3,8 @@ package com.mobiquity.test.domain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.mobiquity.test.models.user.User;
 import io.cucumber.guice.ScenarioScoped;
 import io.restassured.RestAssured;
@@ -13,6 +15,13 @@ import org.junit.Assert;
 @ScenarioScoped
 public class BlogUser {
 
+    private final String appURL;
+
+    @Inject
+    public BlogUser(@Named("app.url") String appURL) {
+        this.appURL = appURL;
+    }
+
     private User user;
 
     public User getUser() {
@@ -21,7 +30,7 @@ public class BlogUser {
 
     public void setUser(String username) {
         final User user = getMyDetails(username);
-        Assert.assertNotNull("No user exists with username :: " + username,user);
+        Assert.assertNotNull("No user exists with username :: " + username, user);
         this.user = user;
     }
 
@@ -42,8 +51,10 @@ public class BlogUser {
     }
 
     private JSONArray getUsers() {
-        RestAssured.baseURI = "https://jsonplaceholder.typicode.com";
-        String body = RestAssured.get("users")
+        String body = RestAssured
+                .given()
+                .baseUri(appURL)
+                .get("users")
                 .then()
                 .assertThat()
                 .statusCode(200)
