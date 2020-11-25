@@ -34,7 +34,7 @@ public class BlogUser {
                 try {
                     return mapper.readValue(user.toString(), User.class);
                 } catch (JsonProcessingException e) {
-                    Assert.fail("Unable to map json to object: " + e.getMessage());
+                    Assert.fail("Unable to map json to object :: " + e.getMessage());
                 }
             }
         }

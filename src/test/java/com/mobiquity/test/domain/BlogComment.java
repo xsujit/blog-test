@@ -10,8 +10,6 @@ import io.cucumber.guice.ScenarioScoped;
 import io.restassured.RestAssured;
 import org.json.JSONArray;
 import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +18,13 @@ import java.util.List;
 public class BlogComment {
 
     private final BlogPost blogPost;
+    private final BlogUser blogUser;
     private final List<Comment> comments;
 
     @Inject
-    public BlogComment(BlogPost blogPost) {
+    public BlogComment(BlogPost blogPost, BlogUser blogUser) {
         this.blogPost = blogPost;
+        this.blogUser = blogUser;
         this.comments = new ArrayList<>();
     }
 
@@ -42,9 +42,11 @@ public class BlogComment {
                 });
                 this.comments.addAll(comments);
             } catch (JsonProcessingException e) {
-                Assert.fail("Unable to map json to object: " + e.getMessage());
+                Assert.fail("Unable to map json to object :: " + e.getMessage());
             }
         }
+        String msg = "There are no comments for any posts by username :: " + blogUser.getUser().getUsername();
+        Assert.assertFalse(msg, comments.isEmpty());
     }
 
     private JSONArray fetchComments(int id) {

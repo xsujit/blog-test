@@ -38,10 +38,12 @@ public class BlogPost {
                 try {
                     posts.add(mapper.readValue(post.toString(), Post.class));
                 } catch (JsonProcessingException e) {
-                    Assert.fail("Unable to map json to object: " + e.getMessage());
+                    Assert.fail("Unable to map json to object :: " + e.getMessage());
                 }
             }
         }
+        String msg = "There are no posts by the user " + blogUser.getUser().getUsername();
+        Assert.assertFalse(msg, posts.isEmpty());
     }
 
     private JSONArray fetchPosts() {
