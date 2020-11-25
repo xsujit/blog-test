@@ -8,16 +8,15 @@ import com.mobiquity.test.validator.Validator;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class StepDefinitions {
 
     private final BlogUser blogUser;
     private final BlogPost blogPost;
     private final BlogComment blogComment;
     private final Validator validator;
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Inject
     public StepDefinitions(BlogUser blogUser, BlogPost blogPost, BlogComment blogComment, Validator validator) {
@@ -42,7 +41,7 @@ public class StepDefinitions {
         blogComment.setComments();
         validator.validateEmail();
         final String username = blogUser.getUser().getUsername();
-        logger.info("Validated emails for all the comments made on the posts by user :: {}", username);
+        log.info("Validated emails for all the comments made on the posts by user :: {}", username);
     }
 
 }

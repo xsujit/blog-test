@@ -2,16 +2,14 @@ package com.mobiquity.test.guice;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+@Slf4j
 public class AppModule extends AbstractModule {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
     protected void configure() {
@@ -21,13 +19,13 @@ public class AppModule extends AbstractModule {
             props.load(getPropertiesFile());
             Names.bindProperties(binder(), props);
         } catch (IOException e) {
-            logger.error("Error during binding properties", e);
+            log.error("Error during binding properties", e);
         }
     }
 
     private InputStream getPropertiesFile() {
         String environment = System.getProperty("environment", "uat.properties");
-        logger.info("Test environment :: {}", environment);
+        log.info("Using properties file :: {}", environment);
         return AppModule.class
                 .getClassLoader()
                 .getResourceAsStream(environment);
