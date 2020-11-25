@@ -20,7 +20,9 @@ public class BlogUser {
     }
 
     public void setUser(String username) {
-        this.user = getMyDetails(username);
+        final User user = getMyDetails(username);
+        Assert.assertNotNull("No user exists with username :: " + username,user);
+        this.user = user;
     }
 
     private User getMyDetails(String username) {
