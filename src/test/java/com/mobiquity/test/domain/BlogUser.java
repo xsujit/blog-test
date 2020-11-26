@@ -5,24 +5,24 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
+import com.mobiquity.test.clients.Client;
 import com.mobiquity.test.models.user.User;
 import io.cucumber.guice.ScenarioScoped;
-import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 
 import java.util.List;
+import java.util.Objects;
 
 @ScenarioScoped
 @Slf4j
 public class BlogUser {
 
-    private final String appURL;
+    private final Client client;
 
     @Inject
-    public BlogUser(@Named("app.url") String appURL) {
-        this.appURL = appURL;
+    public BlogUser(Client client) {
+        this.client = client;
     }
 
     private User user;
@@ -33,36 +33,28 @@ public class BlogUser {
 
     public void setUser(String username) {
         User user = getUserDetails(username);
-        Assert.assertNotNull("No user exists with username :: " + username, user);
+        Assert.assertNotNull("No user exists with username: " + username, user);
         this.user = user;
     }
 
     private User getUserDetails(String username) {
-        User user = null;
-        try {
-            user = getUsers().stream()
-                    .filter(u -> u.getUsername().equalsIgnoreCase(username))
-                    .findAny()
-                    .orElse(null);
-        } catch (JsonProcessingException e) {
-            Assert.fail("Unable to map json to object :: " + e.getMessage());
-        }
-        return user;
+        List<User> users = Objects.requireNonNull(getUsers());
+        return users.stream()
+                .filter(u -> u.getUsername().equalsIgnoreCase(username))
+                .findAny()
+                .orElse(null);
     }
 
-    private List<User> getUsers() throws JsonProcessingException {
-        String body = RestAssured
-                .given()
-                .baseUri(appURL)
-                .get("users")
-                .then()
-                .assertThat()
-                .statusCode(200)
-                .extract()
-                .asString();
+    private List<User> getUsers() {
+        String body = client.getRequest("users");
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(body, new TypeReference<List<User>>() {
-        });
+        try {
+            return mapper.readValue(body, new TypeReference<List<User>>() {
+            });
+        } catch (JsonProcessingException e) {
+            Assert.fail("Unable to map json to object: " + e.getMessage());
+        }
+        return null;
     }
 
 }

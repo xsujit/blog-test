@@ -17,7 +17,8 @@ public class PostSteps {
 
     @When("I search for posts written by me")
     public void i_search_for_posts_written_by_me() {
-        blogPost.setPosts();
+        blogPost.setPosts()
+                .verifyCommentsArePresent();
     }
 
 }

@@ -4,28 +4,28 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
+import com.mobiquity.test.clients.Client;
 import com.mobiquity.test.models.post.Post;
 import io.cucumber.guice.ScenarioScoped;
-import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @ScenarioScoped
 @Slf4j
 public class BlogPost {
 
     private final BlogUser blogUser;
-    private final String appURL;
+    private final Client client;
     private final List<Post> posts;
 
     @Inject
-    public BlogPost(BlogUser blogUser, @Named("app.url") String appURL) {
+    public BlogPost(BlogUser blogUser, Client client) {
         this.blogUser = blogUser;
-        this.appURL = appURL;
+        this.client = client;
         posts = new ArrayList<>();
     }
 
@@ -33,31 +33,29 @@ public class BlogPost {
         return posts;
     }
 
-    public void setPosts() {
-        try {
-            for (Post post : fetchPosts())
-                if (post.getUserId().equals(blogUser.getUser().getId()))
-                    posts.add(post);
-        } catch (JsonProcessingException e) {
-            Assert.fail("Unable to map json to object :: " + e.getMessage());
-        }
+    public BlogPost setPosts() {
+        final List<Post> posts = Objects.requireNonNull(fetchPosts());
+        for (Post post : posts)
+            if (post.getUserId().equals(blogUser.getUser().getId()))
+                this.posts.add(post);
+        return this;
+    }
+
+    public void verifyCommentsArePresent() {
         final String username = blogUser.getUser().getUsername();
         log.info("Found {} posts by user {}", posts.size(), username);
         Assert.assertFalse("There are no posts by the user " + username, posts.isEmpty());
     }
 
-    private List<Post> fetchPosts() throws JsonProcessingException {
-        String body = RestAssured
-                .given()
-                .baseUri(appURL)
-                .get("posts")
-                .then()
-                .assertThat()
-                .statusCode(200)
-                .extract()
-                .asString();
+    private List<Post> fetchPosts() {
+        String body = client.getRequest("posts");
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(body, new TypeReference<List<Post>>() {
-        });
+        try {
+            return mapper.readValue(body, new TypeReference<List<Post>>() {
+            });
+        } catch (JsonProcessingException e) {
+            Assert.fail("Unable to map json to object: " + e.getMessage());
+        }
+        return null;
     }
 }
